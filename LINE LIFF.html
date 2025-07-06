@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LINE LIFF App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #00B900, #00D600);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #00B900, #00D600);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px 20px;
+        }
+
+        .profile-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-image {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            border: 4px solid #00B900;
+            display: none;
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .info-value {
+            color: #212529;
+            font-weight: 500;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00B900, #00D600);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 185, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status.loading {
+            background: #cce5ff;
+            color: #0066cc;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #00B900;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .data-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .data-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        .data-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .data-key {
+            font-weight: 600;
+            color: #00B900;
+            margin-bottom: 5px;
+        }
+
+        .data-value {
+            color: #495057;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 LINE LIFF App</h1>
+            <p>เก็บข้อมูลผู้ใช้ LINE</p>
+        </div>
+
+        <div class="content">
+            <div id="statusMessage" class="status hidden">
+                <div class="loading-spinner"></div>
+                <div id="statusText">กำลังโหลด...</div>
+            </div>
+
+            <div class="profile-section">
+                <img id="profileImage" class="profile-image" alt="Profile Picture">
+                <div class="user-info hidden" id="userInfo">
+                    <div class="info-item">
+                        <span class="info-label">ชื่อผู้ใช้:</span>
+                        <span class="info-value" id="displayName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">User ID:</span>
+                        <span class="info-value" id="userId">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">สถานะ:</span>
+                        <span class="info-value" id="statusMessage2">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">ภาษา:</span>
+                        <span class="info-value" id="language">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="getProfileBtn">
+                📊 ดึงข้อมูลโปรไฟล์
+            </button>
+
+            <button class="btn btn-secondary" id="saveDataBtn" disabled>
+                💾 บันทึกข้อมูล
+            </button>
+
+            <button class="btn btn-secondary" id="closeBtn">
+                ❌ ปิดหน้าต่าง
+            </button>
+
+            <div class="data-section hidden" id="dataSection">
+                <div class="data-title">📋 ข้อมูลที่เก็บ</div>
+                <div id="savedData"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LINE LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    
+    <script>
+        // กำหนดค่า LIFF ID (ต้องเปลี่ยนเป็นของจริง)
+        const LIFF_ID = 'YOUR_LIFF_ID_HERE';
+        
+        let userProfile = null;
+        let liffData = null;
+
+        // เริ่มต้น LIFF
+        async function initializeLiff() {
+            try {
+                showStatus('loading', 'กำลังเชื่อมต่อกับ LINE...');
+                
+                await liff.init({ liffId: LIFF_ID });
+                
+                if (liff.isLoggedIn()) {
+                    showStatus('success', 'เชื่อมต่อสำเร็จ!');
+                    
+                    // ดึงข้อมูล context
+                    liffData = {
+                        isInClient: liff.isInClient(),
+                        isLoggedIn: liff.isLoggedIn(),
+                        context: liff.getContext(),
+                        version: liff.getVersion(),
+                        language: liff.getLanguage(),
+                        loginTime: new Date().toISOString()
+                    };
+                    
+                    document.getElementById('language').textContent = liffData.language;
+                    document.getElementById('statusMessage2').textContent = liffData.isInClient ? 'ใน LINE App' : 'ในเบราว์เซอร์';
+                    
+                    setTimeout(() => {
+                        document.getElementById('statusMessage').classList.add('hidden');
+                    }, 1500);
+                    
+                } else {
+                    showStatus('error', 'ไม่ได้เข้าสู่ระบบ LINE');
+                    liff.login();
+                }
+                
+            } catch (error) {
+                console.error('LIFF initialization failed:', error);
+                showStatus('error', 'เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + error.message);
+            }
+        }
+
+        // แสดงสถานะ
+        function showStatus(type, message) {
+            const statusDiv = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            
+            statusDiv.className = `status ${type}`;
+            statusText.textContent = message;
+            statusDiv.classList.remove('hidden');
+            
+            if (type === 'loading') {
+                statusDiv.querySelector('.loading-spinner').style.display = 'block';
+            } else {
+                statusDiv.querySelector('.loading-spinner').style.display = 'none';
+            }
+        }
+
+        // ดึงข้อมูลโปรไฟล์
+        async function getProfile() {
+            try {
+                showStatus('loading', 'กำลังดึงข้อมูลโปรไฟล์...');
+                
+                userProfile = await liff.getProfile();
+                
+                // แสดงข้อมูลโปรไฟล์
+                document.getElementById('displayName').textContent = userProfile.displayName;
+                document.getElementById('userId').textContent = userProfile.userId;
+                
+                // แสดงรูปโปรไฟล์
+                const profileImg = document.getElementById('profileImage');
+                if (userProfile.pictureUrl) {
+                    profileImg.src = userProfile.pictureUrl;
+                    profileImg.style.display = 'block';
+                }
+                
+                // แสดงข้อมูลผู้ใช้
+                document.getElementById('userInfo').classList.remove('hidden');
+                
+                // เปิดใช้งานปุ่มบันทึก
+                document.getElementById('saveDataBtn').disabled = false;
+                
+                showStatus('success', 'ดึงข้อมูลโปรไฟล์สำเร็จ!');
+                
+                setTimeout(() => {
+                    document.getElementById('statusMessage').classList.add('hidden');
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Failed to get profile:', error);
+                showStatus('error', 'ไม่สามารถดึงข้อมูลโปรไฟล์ได้: ' + error.message);
+            }
+        }
+
+        // บันทึกข้อมูล
+        function saveData() {
+            if (!userProfile) {
+                showStatus('error', 'กรุณาดึงข้อมูลโปรไฟล์ก่อน');
+                return;
+            }
+
+            try {
+                showStatus('loading', 'กำลังบันทึกข้อมูล...');
+                
+                const dataToSave = {
+                    profile: userProfile,
+                    liffData: liffData,
+                    timestamp: new Date().toISOString(),
+                    userAgent: navigator.userAgent
+                };
+                
+                // บันทึกใน localStorage (ในการใช้งานจริงควรส่งไปยัง API)
+                localStorage.setItem('liffUserData', JSON.stringify(dataToSave));
+                
+                // แสดงข้อมูลที่บันทึก
+                displaySavedData(dataToSave);
+                
+                showStatus('success', 'บันทึกข้อมูลสำเร็จ!');
+                
+                setTimeout(() => {
+                    document.getElementById('statusMessage').classList.add('hidden');
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Failed to save data:', error);
+                showStatus('error', 'ไม่สามารถบันทึกข้อมูลได้: ' + error.message);
+            }
+        }
+
+        // แสดงข้อมูลที่บันทึก
+        function displaySavedData(data) {
+            const dataSection = document.getElementById('dataSection');
+            const savedDataDiv = document.getElementById('savedData');
+            
+            let html = '';
+            
+            // ข้อมูลโปรไฟล์
+            html += `
+                <div class="data-item">
+                    <div class="data-key">Display Name</div>
+                    <div class="data-value">${data.profile.displayName}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-key">User ID</div>
+                    <div class="data-value">${data.profile.userId}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-key">Picture URL</div>
+                    <div class="data-value">${data.profile.pictureUrl || 'ไม่มี'}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-key">Status Message</div>
+                    <div class="data-value">${data.profile.statusMessage || 'ไม่มี'}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-key">Language</div>
+                    <div class="data-value">${data.liffData.language}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-key">Is In Client</div>
+                    <div class="data-value">${data.liffData.isInClient ? 'Yes' : 'No'}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-key">Context Type</div>
+                    <div class="data-value">${data.liffData.context?.type || 'ไม่มี'}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-key">Timestamp</div>
+                    <div class="data-value">${new Date(data.timestamp).toLocaleString('th-TH')}</div>
+                </div>
+            `;
+            
+            savedDataDiv.innerHTML = html;
+            dataSection.classList.remove('hidden');
+        }
+
+        // ปิดหน้าต่าง
+        function closeWindow() {
+            if (liff.isInClient()) {
+                liff.closeWindow();
+            } else {
+                window.close();
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('getProfileBtn').addEventListener('click', getProfile);
+        document.getElementById('saveDataBtn').addEventListener('click', saveData);
+        document.getElementById('closeBtn').addEventListener('click', closeWindow);
+
+        // โหลดข้อมูลที่บันทึกไว้
+        window.addEventListener('load', () => {
+            const savedData = localStorage.getItem('liffUserData');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    displaySavedData(data);
+                } catch (error) {
+                    console.error('Failed to load saved data:', error);
+                }
+            }
+        });
+
+        // เริ่มต้น LIFF เมื่อโหลดหน้าเว็บ
+        window.addEventListener('load', initializeLiff);
+    </script>
+</body>
+</html>
