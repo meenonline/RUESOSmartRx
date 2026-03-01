@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>พิมพ์ใบเบิกยา</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:#f4f6fb;color:#1e293b;font-size:15px}
+.container{padding:20px;max-width:500px;margin:0 auto}
+h2{font-size:18px;font-weight:700;color:#1a56db;display:flex;align-items:center;gap:8px;margin-bottom:18px}
+/* Type toggle */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.type-card{
+  border:2px solid #e2e8f0;border-radius:12px;padding:16px;cursor:pointer;
+  text-align:center;transition:all .2s;
+}
+.type-card:hover{border-color:#93c5fd;background:#f8fafc}
+.type-card.active{border-color:#1a56db;background:#eff6ff}
+.type-card .icon{font-size:28px;margin-bottom:6px}
+.type-card .label{font-weight:700;font-size:14px;color:#1e293b}
+.type-card .desc{font-size:11px;color:#64748b;margin-top:3px}
+/* Cabinet selection */
+.section{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:16px;margin-bottom:14px}
+.section-title{font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.cabinet-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.cab-btn{
+  border:2px solid #e2e8f0;border-radius:8px;padding:10px 8px;
+  cursor:pointer;text-align:center;transition:all .2s;
+  font-family:'Sarabun',sans-serif;font-size:14px;font-weight:600;
+  background:#fff;color:#475569;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.cab-btn:hover{border-color:#93c5fd;background:#eff6ff}
+.cab-btn.selected{border-color:#1a56db;background:#1a56db;color:#fff}
+.cab-btn .cb-icon{font-size:16px}
+/* Format toggle */
+.format-row{display:flex;gap:8px}
+.fmt-btn{
+  flex:1;border:2px solid #e2e8f0;border-radius:8px;padding:10px;
+  cursor:pointer;text-align:center;font-family:'Sarabun',sans-serif;
+  font-size:14px;font-weight:600;background:#fff;color:#475569;
+  transition:all .2s;
+}
+.fmt-btn:hover{border-color:#93c5fd}
+.fmt-btn.active-pdf {border-color:#dc2626;background:#fff5f5;color:#dc2626}
+.fmt-btn.active-xlsx{border-color:#0ea472;background:#f0fdf4;color:#0ea472}
+/* Info box */
+.info-box{
+  background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;
+  padding:10px 14px;font-size:13px;color:#1e40af;margin-bottom:14px;
+  display:flex;align-items:flex-start;gap:8px;
+}
+/* Buttons */
+.btn-row{display:flex;gap:10px;margin-top:4px}
+.btn{
+  flex:1;padding:11px;border-radius:8px;border:none;
+  font-family:'Sarabun',sans-serif;font-size:15px;font-weight:600;
+  cursor:pointer;transition:opacity .15s,transform .1s;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.btn:active{transform:scale(.98)}
+.btn-cancel{background:#f1f5f9;color:#475569}
+.btn-cancel:hover{background:#e2e8f0}
+.btn-print{background:#1a56db;color:#fff}
+.btn-print:hover{opacity:.9}
+.btn-print:disabled{opacity:.5;pointer-events:none}
+/* Status */
+.status{text-align:center;padding:12px;border-radius:8px;font-weight:600;display:none;margin-top:10px}
+.status.loading{background:#eff6ff;color:#1a56db;border:1px solid #bfdbfe}
+.status.error{background:#fff5f5;color:#dc2626;border:1px solid #fecaca}
+/* Refresh btn */
+.btn-refresh-sm{
+  background:none;border:1.5px solid #e2e8f0;border-radius:6px;
+  padding:4px 10px;font-family:'Sarabun',sans-serif;font-size:12px;
+  color:#475569;cursor:pointer;display:flex;align-items:center;gap:4px;
+  float:right;
+}
+.btn-refresh-sm:hover{border-color:#1a56db;color:#1a56db}
+</style>
+</head>
+<body>
+<div class="container">
+  <h2><span>🖨️</span> พิมพ์ใบเบิกยา</h2>
+  <!-- Type -->
+  <div class="section">
+    <div class="section-title">📋 เลือกประเภทยา</div>
+    <div class="type-grid">
+      <div class="type-card active" id="typeIPD" onclick="setType('ipd')">
+        <div class="icon">🏥</div>
+        <div class="label">แบบ IPD (ยาทั้งหมด)</div>
+        <div class="desc">เบิกยา IPD ทั้งหมด ตามระบบเดิม</div>
+      </div>
+      <div class="type-card" id="typeCabinet" onclick="setType('cabinet')">
+        <div class="icon">🗄️</div>
+        <div class="label">แบบแยกตู้ยา</div>
+        <div class="desc">เลือกตู้ที่ต้องการด้านล่าง</div>
+      </div>
+    </div>
+  </div>
+  <!-- Cabinet selector (hidden until type=cabinet) -->
+  <div class="section" id="cabinetSection" style="display:none">
+    <div class="section-title">
+      เลือกตู้ยา
+      <button class="btn-refresh-sm" onclick="loadCabinets()">🔄 รีเฟรช</button>
+    </div>
+    <div class="info-box">
+      <span>💡</span>
+      <span>เลือกได้หลายตู้ ระบบจะรวมรายการยาทุกตู้ที่เลือกไว้ในไฟล์เดียว</span>
+    </div>
+    <div class="cabinet-grid" id="cabinetGrid">
+      <div style="color:#64748b;font-size:13px">กำลังโหลด...</div>
+    </div>
+  </div>
+  <!-- Format -->
+  <div class="section">
+    <div class="section-title">📄 รูปแบบไฟล์</div>
+    <div class="format-row">
+      <button class="fmt-btn active-pdf" id="fmtPDF" onclick="setFormat('pdf')">
+        📄 PDF
+      </button>
+      <button class="fmt-btn" id="fmtXLSX" onclick="setFormat('xlsx')">
+        📊 Excel (.xlsx)
+      </button>
+    </div>
+  </div>
+  <!-- Status -->
+  <div class="status" id="statusBox"></div>
+  <!-- Buttons -->
+  <div class="btn-row">
+    <button class="btn btn-cancel" onclick="google.script.host.close()">✕ ยกเลิก</button>
+    <button class="btn btn-print" id="printBtn" onclick="doPrint()">
+      <span id="printBtnIcon">✅</span>
+      <span id="printBtnText">ยืนยัน</span>
+    </button>
+  </div>
+</div>
+<script>
+let currentType     = 'ipd';
+let currentFormat   = 'pdf';
+let selectedCabinets= [];
+let allCabinets     = [];
+// ---- Init ----
+window.onload = () => loadCabinets();
+// ---- Load Cabinets from GAS ----
+function loadCabinets() {
+  document.getElementById('cabinetGrid').innerHTML = '<div style="color:#64748b;font-size:13px">กำลังโหลด...</div>';
+  google.script.run
+    .withSuccessHandler(list => {
+      allCabinets = list || [];
+      renderCabinets();
+    })
+    .withFailureHandler(() => {
+      // fallback hardcoded
+      allCabinets = ['A','B','C','D','E','ตู้เย็น','ยาใน'];
+      renderCabinets();
+    })
+    .getCabinetList();
+}
+function renderCabinets() {
+  const icons = { A:'🅰️', B:'🅱️', C:'🆑', D:'🅳', E:'🅴', ตู้เย็น:'❄️', ยาใน:'🏠' };
+  const grid = document.getElementById('cabinetGrid');
+  if (!allCabinets.length) {
+    grid.innerHTML = '<div style="color:#94a3b8;font-size:13px">ไม่พบข้อมูลตู้ยา</div>';
+    return;
+  }
+  grid.innerHTML = allCabinets.map(c => `
+    <button class="cab-btn" id="cab_${c}" onclick="toggleCabinet('${c}')">
+      <span class="cb-icon">${icons[c]||'🗄️'}</span>${c}
+    </button>
+  `).join('');
+}
+function toggleCabinet(name) {
+  const i = selectedCabinets.indexOf(name);
+  if (i >= 0) selectedCabinets.splice(i,1); else selectedCabinets.push(name);
+  document.getElementById('cab_'+name).classList.toggle('selected', selectedCabinets.includes(name));
+}
+// ---- Type ----
+function setType(type) {
+  currentType = type;
+  document.getElementById('typeIPD').classList.toggle('active', type==='ipd');
+  document.getElementById('typeCabinet').classList.toggle('active', type==='cabinet');
+  document.getElementById('cabinetSection').style.display = type==='cabinet' ? 'block' : 'none';
+}
+// ---- Format ----
+function setFormat(fmt) {
+  currentFormat = fmt;
+  document.getElementById('fmtPDF').className  = 'fmt-btn' + (fmt==='pdf'  ? ' active-pdf' : '');
+  document.getElementById('fmtXLSX').className = 'fmt-btn' + (fmt==='xlsx' ? ' active-xlsx': '');
+}
+// ---- Print ----
+function doPrint() {
+  if (currentType==='cabinet' && selectedCabinets.length===0) {
+    showStatus('❌ กรุณาเลือกตู้ยาอย่างน้อย 1 ตู้', 'error'); return;
+  }
+  document.getElementById('printBtn').disabled = true;
+  document.getElementById('printBtnIcon').textContent = '⏳';
+  document.getElementById('printBtnText').textContent = 'กำลังสร้าง...';
+  showStatus('กำลังสร้างใบเบิกยา กรุณารอสักครู่...', 'loading');
+  const selection = {
+    type    : currentType,
+    cabinets: selectedCabinets,
+    isPDF   : currentFormat === 'pdf',
+  };
+  google.script.run
+    .withSuccessHandler(() => {
+      // GAS จะ alert + modal download เอง
+      document.getElementById('printBtn').disabled = false;
+      document.getElementById('printBtnIcon').textContent = '✅';
+      document.getElementById('printBtnText').textContent = 'ยืนยัน';
+      document.getElementById('statusBox').style.display = 'none';
+    })
+    .withFailureHandler(err => {
+      showStatus('❌ เกิดข้อผิดพลาด: '+err.message, 'error');
+      document.getElementById('printBtn').disabled = false;
+      document.getElementById('printBtnIcon').textContent = '✅';
+      document.getElementById('printBtnText').textContent = 'ยืนยัน';
+    })
+    .processSelectionAndGenerate(selection);
+}
+function showStatus(msg, type) {
+  const el = document.getElementById('statusBox');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>
