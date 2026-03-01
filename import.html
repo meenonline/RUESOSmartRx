@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>นำเข้าข้อมูล</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun',sans-serif;background:#f4f6fb;color:#1e293b;font-size:15px}
+.container{padding:20px;max-width:600px;margin:0 auto}
+h2{font-size:18px;font-weight:700;color:#1a56db;display:flex;align-items:center;gap:8px;margin-bottom:18px}
+/* Drop Zone */
+.drop-zone{
+  border:2.5px dashed #93c5fd;
+  border-radius:12px;
+  background:#eff6ff;
+  padding:32px 20px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .2s;
+  margin-bottom:16px;
+}
+.drop-zone:hover,.drop-zone.dragover{border-color:#1a56db;background:#dbeafe}
+.drop-zone .icon{font-size:40px;margin-bottom:8px}
+.drop-zone p{color:#475569;font-size:14px}
+.drop-zone strong{color:#1a56db}
+#fileInput{display:none}
+/* Preview */
+.preview-box{
+  background:#fff;
+  border-radius:10px;
+  border:1px solid #e2e8f0;
+  padding:14px 16px;
+  margin-bottom:16px;
+  display:none;
+}
+.preview-box .file-name{font-weight:600;color:#1e293b;font-size:14px;display:flex;align-items:center;gap:6px}
+.preview-box .file-meta{color:#64748b;font-size:12px;margin-top:4px;font-family:'IBM Plex Mono',monospace}
+.preview-table-wrap{max-height:160px;overflow-y:auto;margin-top:12px;border-radius:6px;border:1px solid #e2e8f0}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#1a56db;color:#fff;padding:6px 10px;text-align:left;white-space:nowrap;position:sticky;top:0}
+tbody tr:nth-child(even){background:#f8fafc}
+tbody td{padding:5px 10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+/* Form section */
+.section{background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:16px;margin-bottom:14px}
+.section-title{font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+/* Transaction type radio */
+.txn-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.txn-card{
+  border:2px solid #e2e8f0;
+  border-radius:10px;
+  padding:14px;
+  cursor:pointer;
+  transition:all .2s;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.txn-card:hover{border-color:#93c5fd}
+.txn-card.selected-in {border-color:#0ea472;background:#f0fdf4}
+.txn-card.selected-out{border-color:#dc2626;background:#fff5f5}
+.txn-card input[type=radio]{display:none}
+.txn-icon{font-size:24px}
+.txn-label{font-weight:700;font-size:14px}
+.txn-desc{font-size:11px;color:#64748b;margin-top:2px}
+/* Recorder input */
+.form-group{margin-bottom:12px}
+.form-label{font-size:12px;font-weight:600;color:#64748b;margin-bottom:5px;display:block}
+.form-input{
+  width:100%;
+  padding:8px 12px;
+  border:1.5px solid #e2e8f0;
+  border-radius:8px;
+  font-family:'Sarabun',sans-serif;
+  font-size:14px;
+  outline:none;
+  transition:border-color .15s;
+}
+.form-input:focus{border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+/* Buttons */
+.btn-row{display:flex;gap:10px;margin-top:4px}
+.btn{
+  flex:1;
+  padding:11px;
+  border-radius:8px;
+  border:none;
+  font-family:'Sarabun',sans-serif;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  transition:opacity .15s,transform .1s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+.btn:active{transform:scale(.98)}
+.btn-cancel{background:#f1f5f9;color:#475569}
+.btn-cancel:hover{background:#e2e8f0}
+.btn-import{background:#1a56db;color:#fff}
+.btn-import:hover{opacity:.9}
+.btn-import:disabled{opacity:.5;pointer-events:none}
+/* Status */
+.status{
+  text-align:center;
+  padding:14px;
+  border-radius:8px;
+  font-weight:600;
+  display:none;
+  margin-top:12px;
+}
+.status.success{background:#f0fdf4;color:#0ea472;border:1px solid #bbf7d0}
+.status.error  {background:#fff5f5;color:#dc2626;border:1px solid #fecaca}
+.status.loading{background:#eff6ff;color:#1a56db;border:1px solid #bfdbfe}
+/* Progress */
+.progress-wrap{height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden;margin-top:8px;display:none}
+.progress-bar{height:100%;background:#1a56db;border-radius:2px;transition:width .3s;width:0%}
+/* Badge */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-in {background:#d1fae5;color:#059669}
+.badge-out{background:#fee2e2;color:#dc2626}
+</style>
+</head>
+<body>
+<div class="container">
+  <h2><span>📥</span> นำเข้าข้อมูล Excel</h2>
+  <!-- Drop Zone -->
+  <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+    <div class="icon">📊</div>
+    <p><strong>คลิกเพื่อเลือกไฟล์</strong> หรือลากไฟล์มาวางที่นี่</p>
+    <p style="margin-top:4px;font-size:12px">รองรับ .xls, .xlsx (โครงสร้าง: dispno, NAME, TYPE, CONTENT, amount...)</p>
+    <input type="file" id="fileInput" accept=".xls,.xlsx" onchange="handleFile(this.files[0])"/>
+  </div>
+  <!-- Preview -->
+  <div class="preview-box" id="previewBox">
+    <div class="file-name"><span>📄</span><span id="fileName">-</span></div>
+    <div class="file-meta" id="fileMeta">-</div>
+    <div class="preview-table-wrap" id="previewTableWrap"></div>
+  </div>
+  <!-- Transaction Type -->
+  <div class="section">
+    <div class="section-title">📋 ประเภทธุรกรรม</div>
+    <div class="txn-options">
+      <label class="txn-card selected-in" id="cardIn" onclick="selectTxn('รับเข้า')">
+        <input type="radio" name="txn" value="รับเข้า" checked/>
+        <div class="txn-icon">📦</div>
+        <div>
+          <div class="txn-label" style="color:#0ea472">รับเข้า</div>
+          <div class="txn-desc">จำนวนเป็นค่า <strong>บวก (+)</strong></div>
+        </div>
+      </label>
+      <label class="txn-card" id="cardOut" onclick="selectTxn('เบิกยา')">
+        <input type="radio" name="txn" value="เบิกยา"/>
+        <div class="txn-icon">💊</div>
+        <div>
+          <div class="txn-label" style="color:#dc2626">เบิกยา</div>
+          <div class="txn-desc">จำนวนเป็นค่า <strong>ลบ (-)</strong></div>
+        </div>
+      </label>
+    </div>
+  </div>
+  <!-- Recorder -->
+  <div class="section">
+    <div class="section-title">👤 ข้อมูลเพิ่มเติม</div>
+    <div class="form-group">
+      <label class="form-label">ชื่อผู้บันทึก</label>
+      <input class="form-input" id="recorderName" placeholder="ชื่อผู้บันทึกข้อมูล..." type="text"/>
+    </div>
+  </div>
+  <!-- Status -->
+  <div class="status" id="statusBox"></div>
+  <div class="progress-wrap" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
+  <!-- Buttons -->
+  <div class="btn-row">
+    <button class="btn btn-cancel" onclick="google.script.host.close()">✕ ยกเลิก</button>
+    <button class="btn btn-import" id="importBtn" onclick="doImport()" disabled>📥 นำเข้าข้อมูล</button>
+  </div>
+</div>
+<!-- SheetJS -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+let parsedRows = [];
+let selectedTxn = 'รับเข้า';
+// ---- Drag & Drop ----
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+// ---- Parse File ----
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb   = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if (!data.length) { showStatus('ไฟล์ไม่มีข้อมูล', 'error'); return; }
+      parsedRows = data;
+      showPreview(file.name, data);
+      document.getElementById('importBtn').disabled = false;
+      showStatus(`พบข้อมูล ${data.length} รายการ พร้อมนำเข้า`, 'success');
+    } catch(err) {
+      showStatus('อ่านไฟล์ไม่สำเร็จ: ' + err.message, 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+function showPreview(name, data) {
+  document.getElementById('previewBox').style.display = 'block';
+  document.getElementById('fileName').textContent = name;
+  document.getElementById('fileMeta').textContent = `${data.length} แถว | คอลัมน์: ${Object.keys(data[0]).join(', ')}`;
+  const headers = Object.keys(data[0]);
+  const preview = data.slice(0, 5);
+  let html = `<table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+  preview.forEach(row => {
+    html += `<tr>${headers.map(h=>`<td>${formatCell(row[h])}</td>`).join('')}</tr>`;
+  });
+  html += `</tbody></table>`;
+  if (data.length > 5) {
+    html += `<div style="text-align:center;padding:6px;color:#64748b;font-size:12px">... และอีก ${data.length-5} รายการ</div>`;
+  }
+  document.getElementById('previewTableWrap').innerHTML = html;
+}
+function formatCell(v) {
+  if (v instanceof Date) return v.toLocaleDateString('th-TH');
+  return String(v||'');
+}
+// ---- Transaction Type ----
+function selectTxn(type) {
+  selectedTxn = type;
+  document.getElementById('cardIn').className  = 'txn-card' + (type==='รับเข้า' ? ' selected-in' : '');
+  document.getElementById('cardOut').className = 'txn-card' + (type==='เบิกยา'  ? ' selected-out': '');
+}
+// ---- Do Import ----
+function doImport() {
+  if (!parsedRows.length) { showStatus('กรุณาเลือกไฟล์ก่อน', 'error'); return; }
+  showStatus('กำลังนำเข้าข้อมูล...', 'loading');
+  document.getElementById('importBtn').disabled = true;
+  document.getElementById('progressWrap').style.display = 'block';
+  animateProgress();
+  const payload = {
+    rows: parsedRows,
+    txnType: selectedTxn,
+    recorder: document.getElementById('recorderName').value.trim() || 'ระบบ'
+  };
+  google.script.run
+    .withSuccessHandler(result => {
+      document.getElementById('progressBar').style.width = '100%';
+      if (result.success) {
+        const badge = result.txnType === 'รับเข้า'
+          ? `<span class="badge badge-in">รับเข้า</span>`
+          : `<span class="badge badge-out">เบิกยา</span>`;
+        showStatus(`✅ นำเข้าสำเร็จ ${badge} จำนวน ${result.count} รายการ`, 'success');
+        setTimeout(() => google.script.host.close(), 2500);
+      } else {
+        showStatus('❌ ผิดพลาด: ' + result.message, 'error');
+        document.getElementById('importBtn').disabled = false;
+      }
+    })
+    .withFailureHandler(err => {
+      showStatus('❌ เกิดข้อผิดพลาด: ' + err.message, 'error');
+      document.getElementById('importBtn').disabled = false;
+    })
+    .importData(payload);
+}
+function animateProgress() {
+  let w = 0;
+  const id = setInterval(() => {
+    w = Math.min(w + Math.random()*12, 88);
+    document.getElementById('progressBar').style.width = w + '%';
+    if (w >= 88) clearInterval(id);
+  }, 300);
+}
+function showStatus(msg, type) {
+  const el = document.getElementById('statusBox');
+  el.innerHTML = msg;
+  el.className = `status ${type}`;
+  el.style.display = 'block';
+}
+</script>
+</body>
+</html>
