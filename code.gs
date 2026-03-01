@@ -416,47 +416,49 @@ function processSelectionAndGenerate(selection) {
     const dataRows = medicines.map(function(m, i) {
       const bg = i % 2 === 0 ? '#f9fafb' : '#ffffff';
       return '<tr style="background:' + bg + '">'
-        + '<td style="text-align:center">' + (i+1) + '</td>'
-        + '<td style="text-align:left">'   + (m.name||'') + '</td>'
-        + '<td>' + (m.lot||'') + '</td>'
-        + '<td style="text-align:center">' + (m.pack||'') + '</td>'
-        + '<td>........</td><td>........</td><td>........</td><td>........</td><td>........</td>'
-        + '<td></td>'
+        + '<td style="text-align:center;border:1px solid #d1d5db;padding:4px 6px">' + (i+1) + '</td>'
+        + '<td style="text-align:left;border:1px solid #d1d5db;padding:4px 8px;font-weight:500">' + (m.name||'') + '</td>'
+        + '<td style="text-align:center;border:1px solid #d1d5db;padding:4px 6px;font-size:12px">' + (m.lot||'') + '</td>'
+        + '<td style="text-align:center;border:1px solid #d1d5db;padding:4px 6px">' + (m.pack||'') + '</td>'
+        + '<td style="text-align:center;border:1px solid #d1d5db;padding:4px 6px;font-weight:600;color:#1a56db">' + (m.balance||0) + '</td>'
+        + '<td style="text-align:center;border:1px solid #d1d5db;padding:4px 6px">........</td>'
+        + '<td style="text-align:center;border:1px solid #d1d5db;padding:4px 6px">........</td>'
+        + '<td style="text-align:center;border:1px solid #d1d5db;padding:4px 6px">........</td>'
+        + '<td style="text-align:center;border:1px solid #d1d5db;padding:4px 6px"></td>'
         + '</tr>';
     }).join('');
-    const tableHtml = '<table style="width:100%;border-collapse:collapse;font-size:13px">'
-      + '<thead><tr>'
-      + '<th style="width:40px;background:#4b5563;color:#fff;border:1px solid #333;padding:5px 6px">ลำดับ</th>'
-      + '<th style="text-align:left;background:#4b5563;color:#fff;border:1px solid #333;padding:5px 6px">รายการยาที่ขอเบิก</th>'
-      + '<th style="width:100px;background:#4b5563;color:#fff;border:1px solid #333;padding:5px 6px">Lot No.</th>'
-      + '<th style="width:70px;background:#4b5563;color:#fff;border:1px solid #333;padding:5px 6px">Pack Size</th>'
-      + '<th style="width:70px;background:#4b5563;color:#fff;border:1px solid #333;padding:5px 6px">วันที่ 1</th>'
-      + '<th style="width:70px;background:#4b5563;color:#fff;border:1px solid #333;padding:5px 6px">วันที่ 2</th>'
-      + '<th style="width:70px;background:#4b5563;color:#fff;border:1px solid #333;padding:5px 6px">วันที่ 3</th>'
-      + '<th style="width:70px;background:#4b5563;color:#fff;border:1px solid #333;padding:5px 6px">วันที่ 4</th>'
-      + '<th style="width:70px;background:#4b5563;color:#fff;border:1px solid #333;padding:5px 6px">วันที่ 5</th>'
-      + '<th style="width:90px;background:#4b5563;color:#fff;border:1px solid #333;padding:5px 6px">หมายเหตุ</th>'
+    const tableHtml = '<table style="width:100%;border-collapse:collapse;font-size:13px;font-family:\'TH Sarabun New\',Sarabun,sans-serif">'
+      + '<thead><tr style="background:linear-gradient(135deg,#1e3a5f,#1a56db)">'
+      + '<th style="width:36px;color:#fff;border:1px solid #1a56db;padding:6px 4px;text-align:center;font-size:12px">ลำดับ</th>'
+      + '<th style="text-align:left;color:#fff;border:1px solid #1a56db;padding:6px 8px;font-size:13px">รายการยาที่ขอเบิก</th>'
+      + '<th style="width:90px;color:#fff;border:1px solid #1a56db;padding:6px 4px;text-align:center;font-size:12px">Lot No.</th>'
+      + '<th style="width:55px;color:#fff;border:1px solid #1a56db;padding:6px 4px;text-align:center;font-size:12px">Pack</th>'
+      + '<th style="width:55px;color:#fff;border:1px solid #1a56db;padding:6px 4px;text-align:center;font-size:12px">คงเหลือ</th>'
+      + '<th style="width:65px;color:#fff;border:1px solid #1a56db;padding:6px 4px;text-align:center;font-size:12px">วันที่ 1</th>'
+      + '<th style="width:65px;color:#fff;border:1px solid #1a56db;padding:6px 4px;text-align:center;font-size:12px">วันที่ 2</th>'
+      + '<th style="width:65px;color:#fff;border:1px solid #1a56db;padding:6px 4px;text-align:center;font-size:12px">วันที่ 3</th>'
+      + '<th style="width:80px;color:#fff;border:1px solid #1a56db;padding:6px 4px;text-align:center;font-size:12px">หมายเหตุ</th>'
       + '</tr></thead>'
       + '<tbody>' + dataRows
-      + '<tr style="background:#e8f0fe"><td colspan="2" style="text-align:center;font-weight:700;border:1px solid #aaa;padding:4px 6px">รวมทั้งหมด ' + medicines.length + ' รายการ</td>'
-      + '<td colspan="8" style="border:1px solid #aaa"></td></tr>'
+      + '<tr style="background:#e8f0fe"><td colspan="2" style="text-align:center;font-weight:700;border:1px solid #d1d5db;padding:5px 6px;color:#1a56db">รวมทั้งหมด ' + medicines.length + ' รายการ</td>'
+      + '<td colspan="7" style="border:1px solid #d1d5db"></td></tr>'
       + '</tbody></table>';
     const htmlContent = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>'
       + '<title>ใบเบิกยา ' + dateStr + '</title>'
       + '<style>'
       + '*{box-sizing:border-box;margin:0;padding:0}'
-      + 'body{font-family:"TH Sarabun New",Sarabun,Arial,sans-serif;font-size:15px;background:#fff;padding:10mm 12mm}'
-      + '.no-print{margin-bottom:12px;text-align:center}'
-      + 'button{padding:8px 20px;border:none;border-radius:6px;font-size:15px;cursor:pointer;font-family:inherit;margin-right:8px}'
-      + '.btn-print{background:#1a56db;color:#fff}'
+      + 'body{font-family:"TH Sarabun New",Sarabun,Arial,sans-serif;font-size:15px;background:#fff;padding:8mm 10mm}'
+      + '.no-print{margin-bottom:12px;text-align:center;padding:10px}'
+      + 'button{padding:10px 24px;border:none;border-radius:8px;font-size:15px;cursor:pointer;font-family:inherit;margin-right:8px;font-weight:600}'
+      + '.btn-print{background:linear-gradient(135deg,#1a56db,#1e3a5f);color:#fff;box-shadow:0 2px 8px rgba(26,86,219,.3)}'
       + '.btn-close{background:#6b7280;color:#fff}'
-      + '.page-header{text-align:center;margin-bottom:12px;border-bottom:2px solid #1a56db;padding-bottom:8px}'
-      + '.page-header h1{font-size:22px;color:#1a56db;margin-bottom:2px}'
+      + '.page-header{text-align:center;margin-bottom:14px;border-bottom:3px solid #1a56db;padding-bottom:10px}'
+      + '.page-header h1{font-size:24px;color:#1a56db;margin-bottom:4px;letter-spacing:-0.02em}'
       + '.page-header p{font-size:13px;color:#555}'
-      + '.summary-bar{background:#e8f0fe;color:#1a56db;font-weight:700;font-size:14px;text-align:center;padding:6px;border-radius:4px;margin-bottom:12px}'
-      + 'table td{border:1px solid #aaa;padding:4px 6px;text-align:center;vertical-align:middle}'
-      + '.footer-sign{display:flex;justify-content:space-around;margin-top:24px;font-size:14px}'
-      + '@media print{@page{size:A4;margin:10mm}body{padding:0;font-size:14px}.no-print{display:none}tr{page-break-inside:avoid}}'
+      + '.summary-bar{background:linear-gradient(135deg,#e8f0fe,#dbeafe);color:#1a56db;font-weight:700;font-size:14px;text-align:center;padding:8px 12px;border-radius:6px;margin-bottom:14px;border:1px solid #bfdbfe}'
+      + '.footer-sign{display:flex;justify-content:space-around;margin-top:28px;font-size:14px}'
+      + '.footer-sign>div{min-width:200px}'
+      + '@media print{@page{size:A4 landscape;margin:8mm}body{padding:0;font-size:14px}.no-print{display:none}tr{page-break-inside:avoid}}'
       + '</style></head><body>'
       + '<div class="no-print">'
       + '<button class="btn-print" onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>'
@@ -771,6 +773,7 @@ function doGet(e) {
       case 'getUsageData':   result = _getUsageData(e.parameter.from, e.parameter.to); break;
       case 'getRecentDrugList': result = _getRecentDrugList(); break;
       case 'getUntrackedExpiry': result = _getUntrackedExpiry(); break;
+      case 'getMonthlyTrend': result = _getMonthlyTrend(); break;
       default: result = { success: false, error: 'Unknown action: ' + action };
     }
     return _jsonOut(result);
@@ -839,6 +842,8 @@ function doPost(e) {
         break;
       case 'sendEmailTest': result = _sendEmailTest(body); break;
       case 'untrackExpiry': result = _untrackExpiry(body); break;
+      case 'updateFormulary': result = _updateFormulary(body); break;
+      case 'getMonthlyTrend': result = _getMonthlyTrend(); break;
       case 'retrackExpiry': result = _retrackExpiry(body); break;
       default:
         result = { success: false, error: 'Unknown action' };
@@ -907,8 +912,12 @@ function _adjustStock(body) {
   set('วันหมดอายุ',       expDate);
   set('ประเภทธุรกรรม',    'ปรับ stock'); // ← ตามที่กำหนด
   set('ผู้บันทึก',         recorder || 'ระบบ');
-  set('เวลาบันทึก',        timeStr);
+  set('เวลาบันทึก',        now);  // ใช้ Date object แทน string
   txn.appendRow(newRow);
+  // Double flush pattern — ให้ข้อมูลลง sheet ก่อน refresh
+  SpreadsheetApp.flush();
+  Utilities.sleep(500);
+  SpreadsheetApp.flush();
   // Recalculate summary sheets
   refreshSummarySheets();
   refreshDispenseSheet();
@@ -975,6 +984,9 @@ function _addManualTransaction(body) {
   set('ผู้บันทึก',         recorder);
   set('เวลาบันทึก',        timeStr);
   txn.appendRow(newRow);
+  SpreadsheetApp.flush();
+  Utilities.sleep(500);
+  SpreadsheetApp.flush();
   refreshSummarySheets();
   refreshDispenseSheet();
   _logActivity(`เพิ่ม Manual: ${drugName} (${qtyNum > 0 ? '+' : ''}${qtyNum})`, Math.abs(qtyNum), recorder);
@@ -1348,7 +1360,7 @@ function _getRecentDrugList() {
     const rawDate = r[dateIdx];
     const rawExp  = r[expIdx];
     if (!name) continue;
-    const key = name + '||' + pack;
+    const key = code + '||' + name + '||' + pack;
     if (!drugMap[key]) {
       // แปลงวันหมดอายุ
       let expStr = '';
@@ -1619,14 +1631,19 @@ function _sendLine(message) {
   const cfg    = _getSettingsMap();
   const token  = (cfg['LINE_CHANNEL_ACCESS_TOKEN'] || '').trim();
   const target = (cfg['LINE_TARGET_ID'] || '').trim();
+  const type   = cfg['LINE_TARGET_TYPE'] || 'groupId';
   if (!token) return { ok: false, error: 'ไม่มี Channel Access Token', code: 0 };
   if (!target) return { ok: false, error: 'ไม่มี Target ID', code: 0 };
+  // Validate token format - should be a long string
+  if (token.length < 100) {
+    return { ok: false, error: 'Token สั้นผิดปกติ (' + token.length + ' chars) — ตรวจสอบว่าใช้ Channel Access Token (Long-lived) ไม่ใช่ Channel Secret', code: 0 };
+  }
   const payload = { to: target, messages: [{ type: 'text', text: message }] };
   try {
     const resp = UrlFetchApp.fetch('https://api.line.me/v2/bot/message/push', {
       method:             'POST',
+      contentType:        'application/json',
       headers: {
-        'Content-Type':  'application/json',
         'Authorization': 'Bearer ' + token,
       },
       payload:            JSON.stringify(payload),
@@ -1634,20 +1651,16 @@ function _sendLine(message) {
     });
     const code = resp.getResponseCode();
     const body = resp.getContentText();
+    _logActivity('LINE API Response: ' + code + ' | ' + body.substring(0,200), 0, 'ระบบ');
     if (code === 200) return { ok: true };
     let lineMsg = body;
     try { lineMsg = JSON.parse(body).message || body; } catch(e2) {}
-    return { ok: false, error: 'LINE API ' + code + ': ' + lineMsg.substring(0,300), code: code, detail: lineMsg };
+    return { ok: false, error: 'LINE API ' + code + ': ' + lineMsg.substring(0,300), code: code, detail: body };
   } catch(e) {
     const msg = e.message || '';
-    // ตรวจสอบว่าเป็น permission error
+    _logActivity('LINE Error: ' + msg, 0, 'ระบบ');
     if (msg.includes('script.external_request') || msg.includes('UrlFetchApp') || msg.includes('authorization')) {
-      return {
-        ok: false,
-        error: 'PERMISSION_ERROR',
-        code:  0,
-        detail: msg,
-      };
+      return { ok: false, error: 'PERMISSION_ERROR', code: 0, detail: msg };
     }
     return { ok: false, error: 'Network error: ' + msg, code: 0 };
   }
@@ -1758,9 +1771,9 @@ function _sendLineTest() {
   if (type === 'userId' && !target.startsWith('U')) {
     return { success: false, message: 'User ID ต้องขึ้นต้นด้วย "U" แต่ได้รับ "' + target.substring(0,4) + '..." — ตรวจสอบ Target ID' };
   }
-  const msg = '🔔 ทดสอบ Sub-Stock รพ.รือเสาะ\n✅ Token และ Target ID ถูกต้อง\nTarget: ' + target.substring(0,8) + '...';
+  const msg = '🔔 ทดสอบ Sub-Stock รพ.รือเสาะ\n✅ ระบบเชื่อมต่อสำเร็จ\n📅 ' + Utilities.formatDate(new Date(), 'Asia/Bangkok', 'dd/MM/yyyy HH:mm') + '\nTarget: ' + type + ' = ' + target.substring(0,10) + '...';
   const result = _sendLine(msg);
-  if (result.ok) return { success: true, message: 'ส่งสำเร็จ! ตรวจสอบ LINE ได้เลย' };
+  if (result.ok) return { success: true, message: 'ส่งสำเร็จ! ตรวจสอบ LINE ได้เลย (Target: ' + type + ')' };
   // ตรวจ permission error
   if (result.error === 'PERMISSION_ERROR') {
     return {
@@ -2352,6 +2365,108 @@ function _buildEmailHtml(opts) {
 </div>
 </body></html>`;
 }
+
+// ============================================================
+//  UPDATE FORMULARY — แก้ไข Min Stock, ตู้ยา, Reorder Point inline
+// ============================================================
+function _updateFormulary(body) {
+  const { drugName, field, value } = body;
+  if (!drugName || !field) return { success: false, error: 'ข้อมูลไม่ครบ' };
+  const ss     = SpreadsheetApp.getActiveSpreadsheet();
+  const formSh = _getOrCreate(ss, SHEETS.FORMULARY);
+  const allData = formSh.getDataRange().getValues();
+  // หา dataStart
+  let dataStart = 2;
+  for (let i = 0; i < Math.min(allData.length, 5); i++) {
+    const cell = String(allData[i][0] || '').trim();
+    if (cell === '' || cell.includes('บัญชี') || cell.toLowerCase().includes('ชื่อยา') || cell.includes('📋')) {
+      dataStart = i + 1;
+    }
+  }
+  // field → column index mapping
+  const colMap = { 'minStock': 2, 'cabinet': 3, 'reorderPoint': 4, 'shelfPosition': 5 };
+  const col = colMap[field];
+  if (!col) return { success: false, error: 'Field ไม่ถูกต้อง: ' + field };
+  // หาแถวที่ตรงกับ drugName
+  let foundRow = -1;
+  let oldVal = '';
+  for (let i = dataStart; i < allData.length; i++) {
+    const n = String(allData[i][0] || '').trim().replace(/^[📋⚠️🔔📍]\s*/u, '');
+    if (n === drugName.trim()) {
+      foundRow = i + 1;
+      oldVal = String(allData[i][col - 1] || '');
+      break;
+    }
+  }
+  const newVal = (field === 'minStock' || field === 'reorderPoint') && value !== ''
+    ? Number(value) : value;
+  if (foundRow > 0) {
+    formSh.getRange(foundRow, col).setValue(newVal);
+  } else {
+    // สร้างแถวใหม่
+    const newRow = [drugName, '', '', '', ''];
+    newRow[col - 1] = newVal;
+    formSh.appendRow(newRow);
+  }
+  SpreadsheetApp.flush();
+  if (field === 'minStock') {
+    refreshSummarySheets();
+  }
+  _writeAuditTrail('บัญชีโรงพยาบาล', field + ': ' + drugName, oldVal, String(newVal), 'ผู้ใช้');
+  return { success: true, message: 'อัปเดต ' + field + ' สำเร็จ' };
+}
+
+// ============================================================
+//  MONTHLY TREND — ค่าใช้จ่ายยารายเดือน (12 เดือนล่าสุด)
+// ============================================================
+function _getMonthlyTrend() {
+  const ss  = SpreadsheetApp.getActiveSpreadsheet();
+  const txn = ss.getSheetByName(SHEETS.TRANSACTION);
+  if (!txn || txn.getLastRow() < 2) return { success: true, data: [] };
+  const allData = txn.getDataRange().getValues();
+  const hdr     = allData[0].map(function(h) { return String(h).trim(); });
+  const dateIdx = hdr.indexOf('วันที่');
+  const valIdx  = hdr.indexOf('มูลค่ารวม');
+  const typeIdx = hdr.indexOf('ประเภทธุรกรรม');
+  const qtyIdx  = hdr.indexOf('จำนวน');
+  // Aggregate by month
+  var monthMap = {};
+  for (var i = 1; i < allData.length; i++) {
+    var raw = allData[i][dateIdx];
+    var d;
+    if (raw instanceof Date) d = raw;
+    else { d = new Date(raw); if (isNaN(d)) continue; }
+    var key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    if (!monthMap[key]) monthMap[key] = { inVal: 0, outVal: 0, inQty: 0, outQty: 0 };
+    var val = Math.abs(Number(allData[i][valIdx] || 0));
+    var qty = Number(allData[i][qtyIdx] || 0);
+    if (qty > 0) {
+      monthMap[key].inVal += val;
+      monthMap[key].inQty += qty;
+    } else {
+      monthMap[key].outVal += val;
+      monthMap[key].outQty += Math.abs(qty);
+    }
+  }
+  // Sort by key and take last 12 months
+  var keys = Object.keys(monthMap).sort();
+  var last12 = keys.slice(-12);
+  var thaiMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var result = last12.map(function(k) {
+    var parts = k.split('-');
+    var m = parseInt(parts[1]) - 1;
+    var y = parseInt(parts[0]) + 543;
+    return {
+      month: thaiMonths[m] + ' ' + String(y).slice(-2),
+      key: k,
+      inVal: Math.round(monthMap[k].inVal),
+      outVal: Math.round(monthMap[k].outVal),
+      inQty: monthMap[k].inQty,
+      outQty: monthMap[k].outQty,
+    };
+  });
+  return { success: true, data: result };
+}
 function writeDashboardSheet() {
   const ss  = SpreadsheetApp.getActiveSpreadsheet();
   const now = new Date();
@@ -2398,16 +2513,20 @@ function writeDashboardSheet() {
     const expIdx  = hdr.indexOf('วันหมดอายุ');
     for (let i = 1; i < data.length; i++) {
       const days = Number(data[i][daysIdx] || 9999);
-      // REQ #11: แสดงถ้า days <= expiryDays (รวมถึง stock=0 ด้วย)
+      // แสดงเฉพาะที่ คงเหลือ > 0 เท่านั้น (ถ้า = 0 แล้วไม่ต้องแสดง)
       if (days >= 0 && days <= expiryDays) {
         const nm  = String(data[i][nameIdx] || '');
         const lot = String(data[i][lotIdx] || '');
+        const balIdx = hdr.indexOf('คงเหลือปัจจุบัน');
+        const bal = balIdx >= 0 ? Number(data[i][balIdx] || 0) : 0;
+        // แสดงเฉพาะ stock > 0
+        if (bal <= 0) continue;
         // ข้าม untracked
         if (untrackedSet.has(nm + '||' + lot)) continue;
         const exp = data[i][expIdx] instanceof Date
           ? Utilities.formatDate(data[i][expIdx], 'Asia/Bangkok', 'dd/MM/yyyy')
           : String(data[i][expIdx] || '');
-        expList.push({name: nm, lot, expDate: exp, days});
+        expList.push({name: nm, lot, expDate: exp, days, bal});
       }
     }
   }

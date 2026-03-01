@@ -235,6 +235,9 @@ th.sortable.desc::after{content:'↓';opacity:1;color:var(--teal);}
 .btn-outline-danger{background:transparent;color:var(--red);border:1px solid rgba(239,68,68,.3);}
 .btn-outline-danger:hover{background:rgba(239,68,68,.12);}
 .btn-row{display:flex;gap:10px;}
+.form-edit-input{background:var(--surface2);border:1px solid transparent;border-radius:6px;color:var(--text);transition:border-color .15s}
+.form-edit-input:focus{border-color:var(--teal);outline:none;background:var(--surface)}
+.import-edit{background:transparent;border:1px solid transparent;border-radius:4px;color:var(--text);transition:border-color .15s}
 .btn-icon-sm{width:32px;height:32px;padding:0;border-radius:8px;border:1px solid var(--border);
   background:var(--surface);color:var(--text2);font-size:14px;cursor:pointer;
   display:grid;place-items:center;transition:all .15s;}
@@ -935,6 +938,15 @@ th.sortable.desc::after{content:'↓';opacity:1;color:var(--teal);}
   </div>
   <div class="card">
     <div class="card-head">
+      <div class="card-title"><i class="bi bi-graph-up" style="color:var(--teal)"></i>ค่าใช้จ่ายยารายเดือน (Trend)</div>
+      <button class="btn-icon-sm" onclick="loadTrendChart()"><i class="bi bi-arrow-clockwise"></i></button>
+    </div>
+    <div class="card-body" style="min-height:240px">
+      <canvas id="chartTrend" style="max-height:260px"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
       <div class="card-title">
         <i class="bi bi-bell-fill" style="color:var(--amber)"></i>รายการที่ต้องดำเนินการ
       </div>
@@ -1153,9 +1165,10 @@ th.sortable.desc::after{content:'↓';opacity:1;color:var(--teal);}
             <th class="sortable" data-tbody="txnBody" data-col="5" data-type="str" onclick="sortTxnTable(this)" title="คลิกที่วันหมดอายุในตารางเพื่อแก้ไข">วันหมดอายุ ✏️</th>
             <th class="sortable" data-tbody="txnBody" data-col="6" data-type="str" onclick="sortTxnTable(this)">ประเภท</th>
             <th class="sortable" data-tbody="txnBody" data-col="7" data-type="str" onclick="sortTxnTable(this)">ผู้บันทึก</th>
+            <th style="width:40px;text-align:center" title="ตรวจสอบแล้ว">✓</th>
           </tr></thead>
           <tbody id="txnBody">
-            <tr><td colspan="8"><div class="empty-state">
+            <tr><td colspan="9"><div class="empty-state">
               <i class="bi bi-hourglass-split"></i><p>กำลังโหลด...</p>
             </div></td></tr>
           </tbody>
@@ -1237,13 +1250,18 @@ th.sortable.desc::after{content:'↓';opacity:1;color:var(--teal);}
           <div class="progress-fill" id="progressFill"></div>
         </div>
         <!-- ปุ่มนำเข้า — อยู่ใน sticky panel ไม่มีวันหาย -->
-        <div class="import-btn-row">
-          <button class="btn btn-ghost" onclick="clearImport()">
-            <i class="bi bi-trash3"></i>ล้างข้อมูล
+        <div class="import-btn-row" style="flex-direction:column;gap:8px">
+          <button class="btn btn-green" onclick="openImportManualAdd()" style="width:100%;justify-content:center">
+            <i class="bi bi-plus-circle"></i>เพิ่มรายการ Manual
           </button>
-          <button class="btn btn-primary" id="importBtn" onclick="doImport()" disabled>
-            <i class="bi bi-cloud-upload"></i>นำเข้าข้อมูล
-          </button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" onclick="clearImport()" style="flex:1">
+              <i class="bi bi-trash3"></i>ล้าง
+            </button>
+            <button class="btn btn-primary" id="importBtn" onclick="doImport()" disabled style="flex:2">
+              <i class="bi bi-cloud-upload"></i>นำเข้าข้อมูล
+            </button>
+          </div>
         </div>
       </div><!-- end import-action-panel -->
     </div><!-- end import-right -->
@@ -1563,6 +1581,7 @@ let selectedCabs   = [];
 let allCabinets    = [];
 let chartDoughnut  = null;
 let chartBar       = null;
+let chartTrend     = null;
 let tableCache     = {};
 let sortState      = {};
 let _adjPending    = null;
@@ -1712,6 +1731,8 @@ async function loadDashboard() {
     } else {
       renderAlertTable([]);
     }
+    // Load trend chart
+    loadTrendChart();
   } catch(e) {
     setConnStatus('error', e.message);
     console.error('loadDashboard:', e);
@@ -1897,6 +1918,37 @@ function buildDashboardCharts(data) {
     },
   });
 }
+async function loadTrendChart() {
+  try {
+    const res = await apiGet('getMonthlyTrend');
+    if (!res || !res.data || !res.data.length) return;
+    const labels = res.data.map(d => d.month);
+    const inData = res.data.map(d => d.inVal);
+    const outData = res.data.map(d => d.outVal);
+    if (chartTrend) chartTrend.destroy();
+    chartTrend = new Chart(document.getElementById('chartTrend'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'รับเข้า (บาท)', data: inData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.1)',
+            fill: true, tension: 0.3, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#10b981' },
+          { label: 'เบิกจ่าย (บาท)', data: outData, borderColor: '#f43f5e', backgroundColor: 'rgba(244,63,94,.1)',
+            fill: true, tension: 0.3, borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#f43f5e' },
+        ],
+      },
+      options: {
+        plugins: { legend: { position: 'top', labels: { color: '#94a3b8', font: { family: 'Sarabun', size: 12 }, usePointStyle: true, padding: 14 } } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,.05)' },
+            ticks: { color: '#64748b', font: { family: 'JetBrains Mono', size: 11 },
+              callback: function(v) { return v >= 1000 ? (v/1000).toFixed(0) + 'K' : v; } } },
+          x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { family: 'Sarabun', size: 11 } } },
+        },
+      },
+    });
+  } catch(e) { console.error('loadTrendChart:', e); }
+}
 /* ── SORT TABLE ──────────────────────────────────────── */
 function sortTable(th) {
   const tbodyId = th.dataset.tbody;
@@ -1948,7 +2000,7 @@ async function loadSummary() {
 }
 function renderSummaryTable(data) {
   const tbody = document.getElementById('summaryBody');
-  if (!data.length) { tbody.innerHTML = emptyRow(8); return; }
+  if (!data.length) { tbody.innerHTML = emptyRow(9); return; }
   tbody.innerHTML = data.map((r, i) => {
     const curQty = Number(r['คงเหลือปัจจุบัน'] || 0);
     const uid    = `sum_${i}`;
@@ -2187,7 +2239,7 @@ function sortTxnTable(th) {
 }
 function renderTxnTable(data) {
   const tbody = document.getElementById('txnBody');
-  if (!data.length) { tbody.innerHTML = emptyRow(8); return; }
+  if (!data.length) { tbody.innerHTML = emptyRow(9); return; }
   // เก็บ rowIndex จริง (position ใน tableCache) เพื่อส่งไปบอก backend
   const fullData = tableCache['txnBody'] || data;
   tbody.innerHTML = data.map(r => {
@@ -2225,6 +2277,7 @@ function renderTxnTable(data) {
         title="คลิกเพื่อแก้ไขวันหมดอายุ">${r['วันหมดอายุ'] || ''}</td>
       <td>${typeBadge}</td>
       <td style="color:var(--text2);font-size:12px">${r['ผู้บันทึก'] || ''}</td>
+      <td style="text-align:center"><input type="checkbox" class="txn-verify-cb" title="ตรวจสอบแล้ว" style="width:16px;height:16px;cursor:pointer;accent-color:var(--teal)"/></td>
     </tr>`;
   }).join('');
 }
@@ -2241,14 +2294,28 @@ function renderFormularyTable(data) {
   tbody.innerHTML = data.map((r,i) => {
     const inactive = String(r['INACTIVE']||'').toUpperCase() === 'TRUE';
     const name = r['📋 ชื่อยา'] || r['ชื่อยา'] || '';
+    const minVal = r['⚠️ Minimum Stock'] || r['Minimum Stock'] || '';
+    const cab = r['ตู้ยา'] || '';
+    const rp = r['Reorder Point'] || r['🔔 Reorder Point'] || '';
+    const shelf = r['📍 ตำแหน่งบนชั้น'] || r['ตำแหน่งบนชั้น'] || '';
     return `<tr style="${inactive ? 'opacity:.45;' : ''}">
       <td style="font-weight:600">${name}</td>
-      <td class="mono-text" style="font-weight:700;text-align:center">
-        ${Number(r['⚠️ Minimum Stock'] || r['Minimum Stock'] || 0).toLocaleString()}
+      <td style="text-align:center">
+        <input type="number" class="fi form-edit-input" value="${minVal}" min="0"
+          style="width:80px;text-align:center;padding:4px 6px;font-size:13px;font-weight:700"
+          onchange="saveFormularyField('${esc(name)}','minStock',this.value)"/>
       </td>
-      <td><span class="badge badge-gray">${r['ตู้ยา'] || '—'}</span></td>
-      <td class="mono-text" style="text-align:center">${r['Reorder Point'] || r['🔔 Reorder Point'] || '—'}</td>
-      <td>${r['📍 ตำแหน่งบนชั้น'] || r['ตำแหน่งบนชั้น'] || '—'}</td>
+      <td style="text-align:center">
+        <input type="text" class="fi form-edit-input" value="${esc(cab)}"
+          style="width:70px;text-align:center;padding:4px 6px;font-size:13px"
+          onchange="saveFormularyField('${esc(name)}','cabinet',this.value)"/>
+      </td>
+      <td style="text-align:center">
+        <input type="number" class="fi form-edit-input" value="${rp}" min="0"
+          style="width:80px;text-align:center;padding:4px 6px;font-size:13px"
+          onchange="saveFormularyField('${esc(name)}','reorderPoint',this.value)"/>
+      </td>
+      <td>${shelf || '—'}</td>
       <td style="text-align:center">
         <button class="btn ${inactive ? 'btn-amber' : 'btn-outline-danger'}"
           style="padding:3px 10px;font-size:12px"
@@ -2259,6 +2326,13 @@ function renderFormularyTable(data) {
       </td>
     </tr>`;
   }).join('');
+}
+async function saveFormularyField(drugName, field, value) {
+  try {
+    const res = await apiPost({ action: 'updateFormulary', drugName, field, value });
+    if (res && res.success) showToast('✅ บันทึกสำเร็จ', 'success');
+    else showToast('❌ ' + (res?.error || 'ผิดพลาด'), 'error');
+  } catch(e) { showToast('❌ ' + e.message, 'error'); }
 }
 /* ── FILTER TABLE ────────────────────────────────────── */
 function filterTable(tbodyId, inputId) {
@@ -2352,6 +2426,7 @@ async function confirmAdjust() {
       closeAdjModal();
       await loadSummary();
       await loadSummaryNoLot();
+      if (currentPage === 'dashboard') await loadDashboard();
     } else {
       showToast('❌ ' + (res?.error || 'ผิดพลาด'), 'error');
     }
@@ -2704,59 +2779,54 @@ function selectTxn(t) {
 }
 async function doImport() {
   if (!parsedRows.length) { showImportStatus('กรุณาเลือกไฟล์ก่อน', 'error'); return; }
-  // Step 1: Show preview with currentBal comparison
+  // Step 1: Show preview with currentBal comparison + editable fields
   if (!_importPreviewed) {
     showImportStatus('⏳ กำลังเปรียบเทียบข้อมูล...', 'loading');
     try {
       const sumRes = await apiGet('getData', 'สรุปแบบไม่แยก Lot');
-      const existingDrugs = new Map();
+      _importExistingDrugs = new Map();
       if (sumRes && sumRes.data) {
         sumRes.data.forEach(d => {
           const name = d['ชื่อยาเต็ม'] || '';
-          if (name) existingDrugs.set(name.trim(), Number(d['คงเหลือปัจจุบัน (Pack)'] || 0));
+          if (name) _importExistingDrugs.set(name.trim(), Number(d['คงเหลือปัจจุบัน (Pack)'] || 0));
         });
       }
-      // Build preview with badges
-      const h = Object.keys(parsedRows[0]);
-      const nameCol = h.find(k => /ชื่อยา|drug.?name/i.test(k)) || h[0];
-      let html = '<table><thead><tr><th style="width:36px"><input type="checkbox" id="importCheckAll" checked onchange="toggleImportAll(this.checked)"/></th>';
-      html += '<th>สถานะ</th><th>currentBal</th>';
-      h.forEach(k => { html += '<th>' + k + '</th>'; });
-      html += '</tr></thead><tbody>';
-      parsedRows.forEach((r, i) => {
-        const drugName = String(r[nameCol] || '').trim();
-        const inSystem = existingDrugs.has(drugName);
-        const bal = inSystem ? existingDrugs.get(drugName) : '—';
-        const badge = inSystem
-          ? '<span style="background:rgba(16,185,129,.15);color:var(--green);padding:2px 8px;border-radius:10px;font-size:11px">มีในระบบ</span>'
-          : '<span style="background:rgba(245,158,11,.15);color:var(--amber);padding:2px 8px;border-radius:10px;font-size:11px">ยาใหม่</span>';
-        html += '<tr>';
-        html += '<td><input type="checkbox" class="import-row-cb" data-idx="' + i + '" checked/></td>';
-        html += '<td>' + badge + '</td>';
-        html += '<td class="mono-text" style="text-align:center">' + bal + '</td>';
-        h.forEach(k => { html += '<td>' + (r[k] || '') + '</td>'; });
-        html += '</tr>';
-      });
-      html += '</tbody></table>';
-      document.getElementById('previewTable').innerHTML = html;
+      renderImportPreview();
       _importPreviewed = true;
       document.getElementById('importBtn').innerHTML = '<i class="bi bi-cloud-upload"></i>ยืนยันนำเข้า';
-      showImportStatus('✅ ตรวจสอบข้อมูลแล้ว — เลือกรายการที่ต้องการนำเข้า แล้วกด "ยืนยันนำเข้า"', 'success');
+      showImportStatus('✅ ตรวจสอบข้อมูลแล้ว — แก้ไขข้อมูลได้โดยตรง เลือกรายการ แล้วกด "ยืนยันนำเข้า"', 'success');
     } catch(e) {
       showImportStatus('⚠️ ไม่สามารถเปรียบเทียบได้ กดอีกครั้งเพื่อนำเข้าทั้งหมด', 'warning');
       _importPreviewed = true;
     }
     return;
   }
-  // Step 2: Import selected rows
+  // Step 2: Collect edited data from editable cells + import selected rows
   const checkboxes = document.querySelectorAll('.import-row-cb');
-  let selectedRows;
+  let selectedRows = [];
   if (checkboxes.length > 0) {
-    const selectedIdx = [...checkboxes].filter(cb => cb.checked).map(cb => parseInt(cb.dataset.idx));
-    selectedRows = selectedIdx.map(i => parsedRows[i]);
+    checkboxes.forEach(cb => {
+      if (!cb.checked) return;
+      const idx = parseInt(cb.dataset.idx);
+      if (idx < 0 || idx >= parsedRows.length) return;
+      // Read edited values from inputs
+      const row = { ...parsedRows[idx] };
+      const inputs = document.querySelectorAll('.import-edit[data-idx="' + idx + '"]');
+      inputs.forEach(inp => { if (inp.dataset.key) row[inp.dataset.key] = inp.value; });
+      selectedRows.push(row);
+    });
   } else {
     selectedRows = parsedRows;
   }
+  // Also include manually added rows
+  document.querySelectorAll('.import-manual-row').forEach(tr => {
+    const row = {};
+    tr.querySelectorAll('.import-edit').forEach(inp => {
+      if (inp.dataset.key) row[inp.dataset.key] = inp.value;
+    });
+    const cb = tr.querySelector('.import-row-cb');
+    if (cb && cb.checked && Object.values(row).some(v => v)) selectedRows.push(row);
+  });
   if (!selectedRows.length) { showImportStatus('กรุณาเลือกอย่างน้อย 1 รายการ', 'error'); return; }
   document.getElementById('importBtn').disabled = true;
   document.getElementById('progressTrack').style.display = 'block';
@@ -2782,8 +2852,88 @@ async function doImport() {
   }
   document.getElementById('importBtn').disabled = false;
 }
+let _importExistingDrugs = new Map();
+function renderImportPreview() {
+  const h = Object.keys(parsedRows[0] || {});
+  const nameCol = h.find(k => /ชื่อยา|drug.?name|NAME/i.test(k)) || h[0];
+  let html = '<table><thead><tr><th style="width:32px"><input type="checkbox" id="importCheckAll" checked onchange="toggleImportAll(this.checked)"/></th>';
+  html += '<th style="width:70px">สถานะ</th><th style="width:60px">คงเหลือ</th>';
+  h.forEach(k => { html += '<th>' + k + '</th>'; });
+  html += '</tr></thead><tbody>';
+  parsedRows.forEach((r, i) => {
+    const drugName = String(r[nameCol] || '').trim();
+    const inSystem = _importExistingDrugs.has(drugName);
+    const bal = inSystem ? _importExistingDrugs.get(drugName) : '—';
+    const badge = inSystem
+      ? '<span style="background:rgba(16,185,129,.15);color:var(--green);padding:2px 8px;border-radius:10px;font-size:11px">มีในระบบ</span>'
+      : '<span style="background:rgba(245,158,11,.15);color:var(--amber);padding:2px 8px;border-radius:10px;font-size:11px">ยาใหม่</span>';
+    html += '<tr>';
+    html += '<td><input type="checkbox" class="import-row-cb" data-idx="' + i + '" checked/></td>';
+    html += '<td>' + badge + '</td>';
+    html += '<td class="mono-text" style="text-align:center;font-weight:600">' + bal + '</td>';
+    h.forEach(k => {
+      html += '<td><input type="text" class="fi import-edit" data-idx="' + i + '" data-key="' + esc(k) + '" value="' + esc(String(r[k]||'')) + '" style="padding:3px 6px;font-size:12px;min-width:60px;border:1px solid transparent" onfocus="this.style.borderColor=\'var(--teal)\'" onblur="this.style.borderColor=\'transparent\'"/></td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('previewTable').innerHTML = html;
+}
 function toggleImportAll(checked) {
   document.querySelectorAll('.import-row-cb').forEach(cb => cb.checked = checked);
+}
+async function openImportManualAdd() {
+  // Load drug list for dropdown
+  if (!_drugListCache.length) {
+    try {
+      const res = await apiGet('getRecentDrugList');
+      if (res && res.data) _drugListCache = res.data;
+    } catch(e) {}
+  }
+  // Add a manual row to the preview table
+  const tbody = document.querySelector('#previewTable tbody');
+  if (!tbody) { showToast('กรุณาอัปโหลดไฟล์ก่อน แล้วกดตรวจสอบ', 'warning'); return; }
+  const h = parsedRows.length > 0 ? Object.keys(parsedRows[0]) : ['NAME','TYPE','CONTENT','amount','pack','price','LotNo','ExpDate','code1','department','dispno','date','Barcode'];
+  const nameCol = h.find(k => /ชื่อยา|drug.?name|NAME/i.test(k)) || h[0];
+  const tr = document.createElement('tr');
+  tr.className = 'import-manual-row';
+  tr.style.background = 'rgba(15,244,198,.06)';
+  let cells = '<td><input type="checkbox" class="import-row-cb" data-idx="-1" checked/></td>';
+  cells += '<td><span style="background:rgba(59,130,246,.15);color:var(--blue);padding:2px 8px;border-radius:10px;font-size:11px">Manual</span></td>';
+  cells += '<td style="text-align:center">—</td>';
+  h.forEach(k => {
+    if (k === nameCol) {
+      cells += '<td><input type="text" class="fi import-edit" data-key="' + esc(k) + '" list="importDrugList" style="padding:3px 6px;font-size:12px;min-width:120px" oninput="onImportDrugSelect(this)" autocomplete="off"/></td>';
+    } else {
+      cells += '<td><input type="text" class="fi import-edit" data-key="' + esc(k) + '" style="padding:3px 6px;font-size:12px;min-width:60px"/></td>';
+    }
+  });
+  tr.innerHTML = cells;
+  tbody.appendChild(tr);
+  // Ensure datalist exists
+  if (!document.getElementById('importDrugList')) {
+    const dl = document.createElement('datalist');
+    dl.id = 'importDrugList';
+    dl.innerHTML = _drugListCache.map(d => '<option value="' + esc(d.name) + '">').join('');
+    document.body.appendChild(dl);
+  }
+  showToast('เพิ่มรายการ Manual แล้ว — เลือกยาจาก dropdown', 'success');
+}
+function onImportDrugSelect(inp) {
+  const val = inp.value;
+  const drug = _drugListCache.find(d => d.name === val);
+  if (!drug) return;
+  const tr = inp.closest('tr');
+  if (!tr) return;
+  const setField = (key, v) => {
+    const el = tr.querySelector('.import-edit[data-key="' + key + '"]');
+    if (el && v) el.value = v;
+  };
+  setField('code1', drug.code);
+  setField('pack', drug.pack);
+  setField('price', drug.price);
+  setField('LotNo', drug.lot);
+  setField('ExpDate', drug.expDate);
 }
 function clearImport() {
   parsedRows = [];
