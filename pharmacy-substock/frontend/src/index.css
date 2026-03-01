@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-sidebar: #1e293b;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-sidebar: #cbd5e1;
+  --border: #e2e8f0;
+  --accent: #0ea5e9;
+  --accent-hover: #0284c7;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+}
+
+.dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-sidebar: #0f172a;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-sidebar: #cbd5e1;
+  --border: #334155;
+  --accent: #38bdf8;
+  --accent-hover: #0ea5e9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Sarabun', 'TH Sarabun New', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+input, select, textarea, button {
+  font-family: inherit;
+}
